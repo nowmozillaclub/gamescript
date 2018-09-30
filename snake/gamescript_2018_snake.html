@@ -1,0 +1,100 @@
+<canvas id="gameCanvas" width="400" height="400"></canvas>
+
+<script>
+
+window.onload=function() {
+	canv = document.getElementById("gameCanvas");
+	ctx = canv.getContext("2d");
+	document.addEventListener("keydown", keyPush);
+	setInterval(game, 1000/15);
+}
+
+gridsize = tilecount = 20;
+
+posx = posy = 10;
+velx = vely = 0;
+
+applex = appley = 15;
+
+snake = [];
+snakelen = 3;
+
+score = 0;
+
+function game() {
+
+	// update snake movement
+	posx = posx + velx;
+	posy = posy + vely;
+
+	// draw game area
+	ctx.fillStyle = "black";
+	ctx.fillRect(0,0,canv.width,canv.height);
+
+	// draw snake
+	ctx.fillStyle = "lime";
+	for(var i = 0; i < snake.length; i++) {
+		ctx.fillRect(snake[i].x*gridsize, snake[i].y*gridsize, gridsize-2, gridsize-2);
+		if(snake[i].x == posx && snake[i].y == posy) {
+			snakelen = 3;
+			if (score != 0) {
+				alert('Game Over!');
+				location.reload();
+			}
+		}
+	}
+
+	snake.push({x: posx, y: posy});
+	while(snake.length > snakelen) {
+		snake.shift();
+	}
+
+	// get apple x, y check collision with snake and update score
+	if(applex == posx && appley == posy) {
+		snakelen = snakelen + 1;
+		score = score + 1;
+		applex = Math.floor(Math.random()*tilecount);
+		appley = Math.floor(Math.random()*tilecount);
+	}
+
+	if(posx < 0) {
+		posx = tilecount - 1;
+	}
+	if(posx > tilecount - 1) {
+		posx = 0;
+	}
+	if(posy < 0) {
+		posy = tilecount - 1;
+	}
+	if(posy > tilecount - 1) {
+		posy = 0;
+	}
+
+	// draw apple
+	ctx.fillStyle = "red";
+	ctx.fillRect(applex*gridsize, appley*gridsize, gridsize-1, gridsize-1);
+
+	// update score
+	scoreText = "Score " + score;
+	ctx.font = "12px Arial";
+	ctx.fillStyle = "white";
+	ctx.fillText(scoreText, 350, 20);
+}
+
+function keyPush(evt) {
+	switch(evt.keyCode) {
+		case 37:
+			velx = -1; vely = 0;
+			break;
+		case 38:
+			velx = 0; vely = -1;
+			break;
+		case 39:
+			velx = 1; vely = 0;
+			break;
+		case 40:
+			velx = 0; vely = 1;
+			break;
+	}
+}
+</script>
