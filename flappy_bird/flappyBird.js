@@ -1,13 +1,14 @@
-var cvs = document.getElementById("canvas"); // initializing the canvas
+var cvs = document.getElementById("canvas"); // initializing the canvas to draw graphics
 var ctx = cvs.getContext("2d");
 
 var gap = 80; // the gap between the two pipes
-var constant;
-var bX = 10; // the distance till when a pipe is crossed
-var bY = 150;
+var constant; // this is the position from where pipeUp starts
+var bX = 10; // bird x position
+var bY = 150; // bird y position
 var gravity = 1.5; // how fast the bird falls
 var score = 0; // initial score has to be 0!
-var pipe = [];
+var pipe = []; // array containing each pipe
+var lost = false // set to true if the bird crashes
 
 // initializing all the variables as media files
 var bird = new Image();
@@ -29,7 +30,7 @@ woosh.src = "./sounds/woosh.mp3";
 tading.src = "./sounds/tading.mp3";
 crash.src = "./sounds/crash.mp3"
 
-document.addEventListener("keydown", moveUp); // when any key is pressed, the bird should fly
+document.addEventListener("keydown", moveUp); // bird should fly when key is pressed
 
 pipe[0] = {
     x: cvs.width,
@@ -42,28 +43,33 @@ function moveUp() {
 }
 
 function main() {
-    ctx.drawImage(background, 0, 0);
+    ctx.drawImage(background, 0, 0); // params: file, x position, y position
 
     for (var i = 0; i < pipe.length; i++) {
-        constant = pipeDown.height + gap;
+        constant = pipeDown.height + gap; // from top till starting of lower pipe
         ctx.drawImage(pipeDown, pipe[i].x, pipe[i].y);
         ctx.drawImage(pipeUp, pipe[i].x, pipe[i].y + constant);
-        pipe[i].x--;
+        pipe[i].x--; // scrolls
 
-        if (pipe[i].x == 125) {
+        if (pipe[i].x == 125) { // if pipe reaches middle position
             pipe.push({
                 x: cvs.width,
                 y: Math.floor(Math.random() * pipeDown.height) - pipeDown.height
-                // calculates height and rounds off to lower bound
+                // calculates random height between 0 and 1, and rounds off to lower bound
             });
-        } // once the whole width is crossed, new pipes should be generated
+        } // once the whole width is crossed, new pipes will be generated
 
-        if (bX + bird.width >= pipe[i].x && bX <= pipe[i].x + pipeDown.width && (bY <= pipe[i].y + pipeDown.height || bY + bird.height >= pipe[i].y + constant) || bY + bird.height >= cvs.height - foreground.height) { // detects a collision
-            crash.play();
-            setTimeout(function() {
-                location.reload()
-            }, 750);
+        if (bX + bird.width >= pipe[i].x && bX <= pipe[i].x + pipeDown.width || bY + bird.height >= cvs.height - foreground.height) {
+            if (bY <= pipe[i].y + pipeDown.height || bY + bird.height >= pipe[i].y + constant) { // detects a collision
+                lost = true
+                crash.play();
+                setTimeout(function() {
+                    location.reload()
+                }, 750); // reloads page after 750ms to play the sound    
+            }
         }
+
+        // bird.x
 
         if (pipe[i].x == 5) {
             tading.play();
@@ -71,14 +77,18 @@ function main() {
         } // once the bird safely crosses the gap
     }
 
-    ctx.drawImage(foreground, 0, cvs.height - foreground.height);
+    ctx.drawImage(foreground, 0, cvs.height - foreground.height); // sky, clouds and trees
     ctx.drawImage(bird, bX, bY);
     bY += gravity;
 
     ctx.font = "22px Verdana";
-    ctx.fillText("Score: " + score, 10, cvs.height - 20);
+    if (lost == true) {
+        ctx.fillText("You crashed!", 10, cvs.height - 20);
+    } else {
+        ctx.fillText("Score: " + score, 10, cvs.height - 20);
+    }
 
-    requestAnimationFrame(main); // for making scrolling animation
+    requestAnimationFrame(main); // repaints/updates the screen gui
 }
 
 main();
